@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Food Redistribution Platform</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 2em auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px #e2e8f0;
+            padding: 2em 2em 3em 2em;
+        }
+        h1 {
+            color: #2b6cb0;
+            letter-spacing: 1px;
+            margin-bottom: 0.5em;
+        }
+        form {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="text"], input[type="number"] {
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            padding: 0.5em;
+            font-size: 1em;
+            width: 22%;
+            background: #f4f8fb;
+        }
+        button {
+            background: #3182ce;
+            color: #fff;
+            border: none;
+            padding: 0.6em 1.2em;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 0.5em;
+            margin-bottom: 0.2em;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2b6cb0;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 1.2em;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1.2em;
+            font-size: 1.07em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 2em;
+            background: #f8fafc;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 0.8em;
+            text-align: left;
+            font-size: 1em;
+        }
+        th {
+            background: #ebf8ff;
+            color: #2b6cb0;
+        }
+        td {
+            color: #47525e;
+        }
+        .logout-link {
+            float: right;
+            font-size: 0.97em;
+            margin-top: -1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if username %}
+        <p class="logout-link">Logged in as <b>{{username}}</b>. <a href="{{url_for('logout')}}">Logout</a></p>
+        {% endif %}
+        <h1>Food Redistribution Platform</h1>
+        <form id="donateForm">
+            <input type="text" id="donor" placeholder="Donor Name" required>
+            <input type="text" id="item" placeholder="Food Item" required>
+            <input type="number" id="quantity" placeholder="Quantity" required>
+            <button type="submit">Donate Food</button>
+        </form>
+
+        <h2>Food List</h2>
+        <ul id="foodList"></ul>
+
+        <h2>Donation Logs</h2>
+        <table id="logsTable">
+            <thead>
+                <tr><th>ID</th><th>Status</th><th>Timestamp</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+    // Add new food
+    document.getElementById('donateForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const donor = document.getElementById('donor').value;
+        const item = document.getElementById('item').value;
+        const quantity = document.getElementById('quantity').value;
+        await fetch('/add_food', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ donor, item, quantity })
+        });
+        await loadFood();
+    };
+
+    // Update food status
+    async function updateFoodStatus(id, status) {
+        await fetch('/update_status', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id: id, status: status })
+        });
+        await loadFood();
+        await loadLogs();
+    }
+
+    // Mark safety check
+    async function safetyCheck(id) {
+        await fetch('/safety_check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id: id, check: 'passed' })
+        });
+        await loadFood();
+    }
+
+    // Load and display food list
+    async function loadFood() {
+        const res = await fetch('/list_food');
+        const foodList = await res.json();
+        document.getElementById('foodList').innerHTML = "";
+        foodList.forEach(food => {
+            const li = document.createElement('li');
+            let mainText = `${food.item} (${food.quantity}) from ${food.donor} - Status: ${food.status || 'available'}`;
+            if (food.safety_check) {
+                mainText += ` | Safety: ${food.safety_check}`;
+            }
+            li.innerHTML = `<span>${mainText}</span>
+                <span class="actions">
+                    <button onclick="updateFoodStatus(${food.id}, 'picked up')">Picked Up</button>
+                    <button onclick="updateFoodStatus(${food.id}, 'delivered')">Delivered</button>
+                    <button onclick="safetyCheck(${food.id})">Safety Check</button>
+                </span>`;
+            document.getElementById('foodList').appendChild(li);
+        });
+    }
+
+    // Load and display logs
+    async function loadLogs() {
+        const res = await fetch('/donation_logs');
+        const logs = await res.json();
+        const tbody = document.querySelector('#logsTable tbody');
+        tbody.innerHTML = "";
+        logs.forEach(log => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${log.id}</td>
+                            <td>${log.status}</td>
+                            <td>${log.timestamp}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    loadFood();
+    loadLogs();
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            background : url('https://brownliving.in/cdn/shop/articles/food-donation-services-988981.jpg?v=1703200384') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            margin: 80px auto;
+            max-width: 350px;
+            background: #d1eef7ae;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #e2e8f0;
+            padding: 2em 2em 1.5em 2em;
+            text-align: center;
+        }
+        h2 {
+            color: #2b6cb0;
+            margin-top: 0.2em;
+            margin-bottom: 1.5em;
+        }
+        input[type="text"], input[type="password"] {
+            width: 85%;
+            padding: 0.7em;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            font-size: 1em;
+            background: #f4f8fb;
+            margin-bottom: 1em;
+        }
+        button {
+            width: 90%;
+            background: #3182ce;
+            color: #fff;
+            border: none;
+            padding: 0.6em;
+            border-radius: 6px;
+            font-size: 1em;
+            margin-top: 1.2em;
+            margin-bottom: 0.3em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2b6cb0;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="post" action="/login">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+</body>
+</html>
